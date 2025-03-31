@@ -1,10 +1,10 @@
 {
   "name": "naver-local-mcp",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Naver Local MCP",
   "type": "module",
   "bin": {
-    "naver-local-mcp": "./dist/main.ts"
+    "naver-local-mcp": "./dist/main.js"
   },
   "files": [
     "dist"
