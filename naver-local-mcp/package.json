@@ -1,4 +1,22 @@
 {
+  "name": "naver-local-mcp",
+  "version": "0.0.1",
+  "description": "Naver Local MCP",
+  "type": "module",
+  "bin": {
+    "naver-local-mcp": "./dist/main.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc && chmod +x dist/main.js",
+    "ci": "npm run build",
+    "prepublishOnly": "npm run ci",
+    "postinstall": "npm run build"
+  },
+  "license": "MIT",
+  "author": "Hero",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.8.0",
     "node-fetch": "^3.3.2",

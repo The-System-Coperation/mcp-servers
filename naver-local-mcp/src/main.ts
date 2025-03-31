@@ -4,10 +4,15 @@ import { NAVER_LOCAL_SEARCH_TOOL_NAME } from './const/naver-local-tools-name.js'
 import { NAVER_LOCAL_SEARCH_TOOL_DESCRIPTION } from './const/naver-local-tools-description.js';
 import { naverLocalSearchRequestSchema } from './schemas/naver-local-schema.js';
 import { naverLocalSearchApi } from './fuctions/naver-local-search-api.js';
+
 const server = new McpServer({
     name: 'namver-local-mcp',
     version: '0.0.1',
 });
+
+if (!process.env.NAVER_CLIENT_ID || !process.env.NAVER_CLIENT_SECRET) {
+    throw new Error('NAVER_CLIENT_ID and NAVER_CLIENT_SECRET must be set');
+}
 
 server.tool(
     NAVER_LOCAL_SEARCH_TOOL_NAME,
