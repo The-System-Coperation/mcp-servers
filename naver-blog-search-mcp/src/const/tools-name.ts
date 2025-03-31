@@ -1,0 +1,1 @@
+export const BLOG_SEARCH_TOOL_NAME = "naver-blog-search";

@@ -1,0 +1,1 @@
+export const KEYWORD_SEARCH_TOOL_NAME = "kakao-local-keyword-search";

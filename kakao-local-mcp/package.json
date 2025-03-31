@@ -1,0 +1,24 @@
+{
+  "name": "kakao-local-mcp-server",
+  "version": "0.0.1",
+  "description": "Kakao Local Map MCP Server",
+  "type": "module",
+  "license": "MIT",
+  "author": "Hero",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.8.0",
+    "node-fetch": "^3.3.2",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.14"
+  },
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext"
+  }
+}
