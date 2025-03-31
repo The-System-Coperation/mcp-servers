@@ -4,7 +4,7 @@ import { toQueryString } from '../utils/query-params.js';
 
 export const naverLocalSearchApi = async (query: NaverLocalSearchRequest): Promise<NaverLocalSearchResponse> => {
     const queryString = toQueryString(query);
-    const response = await fetch(`https://openapi.naver.com/v1/search/local.json?query=${queryString}`,
+    const response = await fetch(`https://openapi.naver.com/v1/search/local.json?${queryString}`,
         {
             headers: {
                 'X-Naver-Client-Id': process.env.NAVER_CLIENT_ID as string,

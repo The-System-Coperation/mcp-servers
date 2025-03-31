@@ -1,10 +1,10 @@
 {
   "name": "naver-local-mcp",
-  "version": "0.0.3",
-  "description": "Naver Local MCP",
+  "version": "0.0.9",
+  "description": "Naver Blog Search MCP",
   "type": "module",
   "bin": {
-    "naver-local-mcp": "./dist/main.js"
+    "naver-blog-search-mcp": "./dist/main.js"
   },
   "files": [
     "dist"

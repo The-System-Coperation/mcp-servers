@@ -8,7 +8,7 @@ import { naverLocalSearchRequestSchema } from './schemas/naver-local-schema.js';
 import { naverLocalSearchApi } from './fuctions/naver-local-search-api.js';
 
 const server = new McpServer({
-    name: 'namver-local-mcp',
+    name: 'naver-local-mcp',
     version: '0.0.1',
 });
 
