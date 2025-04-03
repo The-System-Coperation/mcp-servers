@@ -1,0 +1,1 @@
+export const SHOPPING_SEARCH_TOOL_NAME = "naver-shopping-search";
