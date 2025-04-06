@@ -1,6 +1,6 @@
 {
   "name": "naver-blog-search-mcp",
-  "version": "0.0.10",
+  "version": "0.0.12",
   "description": "Naver Blog Search MCP",
   "type": "module",
   "bin": {
@@ -10,10 +10,9 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc && chmod +x dist/main.js",
+    "build": "tsc",
     "ci": "npm run build",
-    "prepublishOnly": "npm run ci",
-    "postinstall": "npm run build"
+    "prepublishOnly": "npm run ci"
   },
   "license": "MIT",
   "author": "Hero",
