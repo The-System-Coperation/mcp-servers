@@ -1,0 +1,1 @@
+export const NEWS_SEARCH_TOOL_NAME = "naver-news-search";
