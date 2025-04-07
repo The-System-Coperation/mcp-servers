@@ -2,10 +2,14 @@
 
 from mcp.server.fastmcp import FastMCP
 import re
-from urllib.request import urlopen
-from urllib.parse import quote
+import json
+from datetime import datetime
+from urllib.request import urlopen, Request
+from urllib.parse import quote, urlencode
 from bs4 import BeautifulSoup
-from model.wikipedia_detail import WikipediaDetailResult
+from model.response.wikipedia_detail import WikipediaDetailResult
+from model.response.wikipedia_search_result import WikipediaSearchResults, WikipediaSearchResultItem
+from model.request.wikipedia_search import WikipediaSearchRequest
 
 mcp = FastMCP(
     name = "wiki-mcp",
@@ -14,9 +18,113 @@ mcp = FastMCP(
 
 
 @mcp.tool()
-def search_wekipedia(query: str) -> str:
-    """위키피디어 키워드 검색"""
-    return f"Searching for {query} on Wikipedia..."
+def search_wekipedia(query: WikipediaSearchRequest) -> WikipediaSearchResults:
+    """
+    위키피디아 고급 검색을 수행합니다.
+    
+    Args:
+        query: 위키피디아 검색 요청 모델
+    
+    Returns:
+        WikipediaSearchResults: 검색 결과 목록
+    """
+    # 검색 쿼리 생성
+    search_query = query.to_search_query()
+    if not search_query.strip():
+        return WikipediaSearchResults(results=[])
+    
+    # URL 인코딩
+    encoded_query = quote(search_query)
+    language = query.language
+    
+    # 고급 검색 필드 JSON 생성
+    advanced_fields = {"fields": {}}
+    
+    # 빈 값이 아닌 필드만 추가
+    if query.plain:
+        advanced_fields["fields"]["plain"] = query.plain
+    
+    if query.phrase:
+        advanced_fields["fields"]["phrase"] = query.phrase
+    
+    if query.not_words:
+        advanced_fields["fields"]["not"] = query.not_words
+    
+    if query.or_words:
+        advanced_fields["fields"]["or"] = query.or_words
+    
+    # 고급 검색 필드 JSON 인코딩
+    advanced_search_json = json.dumps(advanced_fields)
+    encoded_advanced_search = quote(advanced_search_json)
+    
+    # 기본 URL 파라미터
+    params = {
+        "search": encoded_query,
+        "title": "특수:검색",
+        "profile": "advanced",
+        "fulltext": "1",
+        "ns0": "1"
+    }
+    
+    # 고급 검색 필드가 있는 경우만 추가
+    if advanced_fields["fields"]:
+        params["advancedSearch-current"] = encoded_advanced_search
+    
+    # URL 생성
+    url_params = "&".join([f"{k}={v}" for k, v in params.items()])
+    search_url = f"https://{language}.wikipedia.org/w/index.php?{url_params}"
+    
+    try:
+        # 사용자 에이전트 설정
+        headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko)'}
+        request = Request(search_url, headers=headers)
+        
+        # 검색 결과 페이지 가져오기
+        html = urlopen(request)
+        bs = BeautifulSoup(html, "html.parser")
+        
+        # 검색 결과 추출
+        search_results = []
+        
+        # 검색 결과 항목 추출
+        result_items = bs.find_all("li", {"class": "mw-search-result"})
+        
+        for item in result_items:
+            # 제목 추출
+            title_elem = item.find("div", {"class": "mw-search-result-heading"})
+            title = title_elem.get_text().strip() if title_elem else "제목 없음"
+            
+            # 내용 추출
+            detail_elem = item.find("div", {"class": "searchresult"})
+            detail = ""
+            if detail_elem:
+                # HTML 태그 포함하여 내용 추출 (span 태그가 있을 수 있음)
+                detail = str(detail_elem)
+                # HTML 태그 제거 필요시 아래 코드로 변경
+                # detail = detail_elem.get_text().strip()
+            
+            # 검색 결과 항목 추가
+            search_results.append(
+                WikipediaSearchResultItem(
+                    title=title,
+                    detail=detail
+                )
+            )
+        
+        # 결과 반환
+        return WikipediaSearchResults(results=search_results)
+    
+    except Exception as e:
+        # 오류 발생 시 빈 결과 반환
+        return WikipediaSearchResults(results=[])
+
+
+
+
+
+
+
+
 
 # detail 검색
 
