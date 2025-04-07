@@ -1,52 +1,114 @@
 from typing import List, Optional
+import json
+from urllib.parse import quote
 from pydantic import BaseModel, Field
 
 class WikipediaSearchRequest(BaseModel):
     """
-    위키피디아 고급 검색을 위한 요청 모델
+    Request model for Wikipedia advanced search
     
-    - plain: 포함할 단어 목록 (이 단어)
-    - phrase: 정확히 일치해야 하는 문구 (이 문자와 정확히 일치)
-    - not_words: 제외할 단어 목록 (이 단어 제외)
-    - or_words: 선택적 단어 목록 (이 단어 중 하나)
-    - search_query: 일반 검색어
-    - language: 검색할 언어 코드 (기본값: en)
+    - plain: List of words to include (these words)
+    - phrase: Exact phrase match (exact match with this phrase)
+    - not_words: List of words to exclude (exclude these words)
+    - or_words: List of alternative words (one of these words)
+    - search_query: General search query
+    - language: Language code for search (default: en)
     """
     
-    plain: Optional[List[str]] = Field(default=None, description="이 단어를 포함")
-    phrase: Optional[str] = Field(default=None, description="이 문구와 정확히 일치")
-    not_words: Optional[List[str]] = Field(default=None, description="이 단어 제외")
-    or_words: Optional[List[str]] = Field(default=None, description="이 단어 중 하나 포함")
-    search_query: Optional[str] = Field(default=None, description="일반 검색어")
-    language: str = Field(default="en", description="검색할 언어 코드")
+    plain: Optional[List[str]] = Field(default=None, description="Include these words")
+    phrase: Optional[str] = Field(default=None, description="Exact match with this phrase")
+    not_words: Optional[List[str]] = Field(default=None, description="Exclude these words")
+    or_words: Optional[List[str]] = Field(default=None, description="Include one of these words")
+    search_query: Optional[str] = Field(default=None, description="General search query")
+    language: str = Field(default="en", description="Language code for search")
     
     def to_search_query(self) -> str:
         """
-        검색 요청을 위키피디아 검색 쿼리 문자열로 변환
+        Converts search request to Wikipedia search query string
         """
         query_parts = []
         
-        # 일반 검색어 추가
+        # Add general search query
         if self.search_query:
             query_parts.append(self.search_query)
         
-        # 이 단어 (plain)
+        # These words (plain)
         if self.plain:
             query_parts.extend(self.plain)
         
-        # 정확히 일치하는 문구 (phrase)
+        # Exact phrase match (phrase)
         if self.phrase:
             query_parts.append(f'"{self.phrase}"')
         
-        # 제외할 단어 (not_words)
+        # Words to exclude (not_words)
         if self.not_words:
             query_parts.extend([f'-{word}' for word in self.not_words])
         
-        # 선택적 단어 (or_words)
+        # Alternative words (or_words)
         if self.or_words and len(self.or_words) > 1:
             or_query = " OR ".join(self.or_words)
             query_parts.append(f'({or_query})')
         elif self.or_words and len(self.or_words) == 1:
             query_parts.append(self.or_words[0])
         
-        return " ".join(query_parts) 
+        return " ".join(query_parts)
+    
+    def to_advanced_search_fields(self) -> dict:
+        """
+        Converts search request to advanced search fields dictionary
+        """
+        advanced_fields = {"fields": {}}
+        
+        # Add only non-empty fields
+        if self.plain:
+            advanced_fields["fields"]["plain"] = self.plain
+        
+        if self.phrase:
+            advanced_fields["fields"]["phrase"] = self.phrase
+        
+        if self.not_words:
+            advanced_fields["fields"]["not"] = self.not_words
+        
+        if self.or_words:
+            advanced_fields["fields"]["or"] = self.or_words
+        
+        return advanced_fields
+    
+    def get_search_url(self) -> str:
+        """
+        Generates Wikipedia search URL from request parameters
+        
+        Returns:
+            str: Complete Wikipedia search URL
+        """
+        # Generate search query
+        search_query = self.to_search_query()
+        if not search_query.strip():
+            return f"https://{self.language}.wikipedia.org"
+        
+        # URL encode search query
+        encoded_query = quote(search_query)
+        
+        # Create advanced search fields JSON
+        advanced_fields = self.to_advanced_search_fields()
+        
+        # Encode advanced search fields JSON
+        advanced_search_json = json.dumps(advanced_fields)
+        encoded_advanced_search = quote(advanced_search_json)
+        
+        # Base URL parameters
+        params = {
+            "search": encoded_query,
+            "title": "특수:검색",
+            "profile": "advanced",
+            "fulltext": "1",
+            "ns0": "1"
+        }
+        
+        # Add advanced search fields only if present
+        if advanced_fields["fields"]:
+            params["advancedSearch-current"] = encoded_advanced_search
+        
+        # Create URL
+        url_params = "&".join([f"{k}={v}" for k, v in params.items()])
+        return f"https://{self.language}.wikipedia.org/w/index.php?{url_params}" 
